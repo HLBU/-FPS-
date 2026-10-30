@@ -1,5 +1,7 @@
-import { chromium } from 'playwright';
+import './project-env.mjs';
 import { mkdir } from 'node:fs/promises';
+
+const { chromium } = await import('playwright');
 
 // Run against a separately started dev or preview server.
 const url = process.env.SMOKE_URL ?? 'http://127.0.0.1:5173';

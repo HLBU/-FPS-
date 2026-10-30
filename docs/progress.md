@@ -66,3 +66,13 @@
 - 当前是第一人称移动原型，没有角色身体动画、武器、部位伤害、蹲趴、探头、肩射、短冲、能力、人机或联机。
 - 第三阶段：步枪、首个部位命中判定、250 HP 与 10/25/50 伤害、30 发/8 发每秒、手动换弹、站定/移动/腾空散布，以及射击反推和空中命中敌人的反推特例。
 - 手动验收步骤见 README 的“第二阶段手动验收”。先试玩确认移动手感，再推进第三阶段。
+
+## 存储位置整改（2026-10-30）
+
+- 按用户长期要求，非必需项目数据不存 C 盘；规则保存到项目 `AGENTS.md`。
+- 项目源码、node_modules、dist、artifacts 原本就在 F 盘。本次发现 C 盘 npm 默认共享缓存，将其完整迁到 `.cache/npm`，246 个文件、172,058,260 字节，逐文件 SHA-256 校验通过。原路径设为 Junction 指向 F 盘，保留其他项目兼容性，没有删除共享内容。
+- 新增项目 `.npmrc`、`project.ps1`，将下载缓存、临时文件与可选浏览器下载放在项目 `.cache` 下；不改全局 TEMP。浏览器检查在导入 Playwright 前设置 F 盘临时目录。
+- 未发现残留的 Playwright/Vite 命名的 C 盘临时目录，也未发现独立下载的 ms-playwright 浏览器目录；未移动系统已安装的 Chrome/Edge 或 Codex 自身运行时。
+- 浏览器调试日志确认 user-data-dir 已使用项目 `.cache/tmp`。本次重跑先发生 Target crashed，后发生 ERR_INSUFFICIENT_RESOURCES，不能算作浏览器检查通过。此前第二阶段通过记录保持有效；迁移后完整浏览器检查需在资源允许时重跑。
+- 完整性清单位于忽略提交的 `.cache/npm-migration-manifest.json`，浏览器诊断记录位于 `artifacts/browser-storage-check.log`。
+- 通过新启动脚本重跑物理检查，8 项全部通过；npm 实际缓存路径确认在 F 盘；Git 空白检查通过。

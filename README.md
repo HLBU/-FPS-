@@ -8,13 +8,26 @@
 - 支持 WebGL 2 的桌面 Chrome 或 Edge，启用硬件加速。
 - 首次安装需要访问 npm 仓库；游戏页面不依赖账号、远程资源或外部素材。
 
+## 存储约束（长期）
+
+项目、依赖、构建、截图、缓存和临时文件统一保存在 F 盘项目目录，非绝对必要不写 C 盘。此规则已写入 `AGENTS.md`。
+
+- `.cache/npm`：npm 下载缓存与日志；项目 `.npmrc` 指定此目录。
+- `.cache/tmp`：项目命令与浏览器自动检查的临时目录。
+- `.cache/browsers`：需要额外下载浏览器时的存放目录。
+- `node_modules`、`dist`、`artifacts`：依赖、构建产物和截图。
+
+原 C 盘 npm 缓存已迁入本项目 `.cache/npm`，逐文件 SHA-256 校验通过。原路径只保留目录链接，兼容其他项目；迁移保留了共享缓存的全部内容。不要单独删除或搬走目标目录；如需移动整个项目，须同步调整原目录链接。
+
+下方使用 `project.ps1`，在子进程中设置项目临时目录，不改系统全局 TEMP。`-ExecutionPolicy Bypass` 仅对该次进程生效，不修改系统执行策略。
+
 ## 本地启动（Windows PowerShell）
 
 在项目目录打开终端：
 
 ```powershell
-npm.cmd ci
-npm.cmd run dev
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\project.ps1 -Task install
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\project.ps1 -Task dev
 ```
 
 浏览器访问终端打印的地址，通常为 http://127.0.0.1:5173 。若端口被占用，以终端实际地址为准。看到“竞技场就绪 · WebGL 2 渲染正常”后，点击“进入测试场”开始。
@@ -23,13 +36,13 @@ WASD 移动；左右 Shift 均可疾跑；空格跳跃，按住可落地连跳�
 
 若浏览器拒绝鼠标锁定，可点击菜单中的“窗口内鼠标模式”；此模式只在画面内转向，受窗口边缘限制，不具备无限转向能力。建议使用完整桌面浏览器试玩。
 
-停止服务：终端按 Ctrl+C。后续启动只需要 `npm.cmd run dev`；依赖变动后重新执行 `npm.cmd ci`。使用 `npm.cmd` 避免 PowerShell 对 npm.ps1 的执行策略限制。
+停止服务：终端按 Ctrl+C。依赖已安装时可跳过 install，直接执行 dev 命令。
 
 ## 构建与预览
 
 ```powershell
-npm.cmd run build
-npm.cmd run preview
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\project.ps1 -Task build
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\project.ps1 -Task preview
 ```
 
 预览地址通常为 http://127.0.0.1:4173 。构建文件生成到 `dist/`，应通过 HTTP 服务访问，不能直接双击 HTML。目前服务只监听本机；真人联机将在阶段 7 实现。
@@ -39,7 +52,7 @@ npm.cmd run preview
 保持开发服务运行，在另一个终端执行：
 
 ```powershell
-npm.cmd run test:smoke
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\project.ps1 -Task test:smoke
 ```
 
 检查使用本机 Chrome 的无界面模式，验证 WebGL、原生鼠标锁定、地面/空中转向、移动/松键停止、跳跃、暂停/恢复、重置、右 Shift、失焦清键、锁定失败恢复及窄窗口布局，并在 `artifacts/` 输出截图。使用 Edge 或其他地址：
@@ -47,10 +60,10 @@ npm.cmd run test:smoke
 ```powershell
 $env:BROWSER_CHANNEL = 'msedge'
 $env:SMOKE_URL = 'http://127.0.0.1:4173'
-npm.cmd run test:smoke
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\project.ps1 -Task test:smoke
 ```
 
-如果没有 Chrome/Edge，可执行 `npx.cmd playwright install chromium`，并将 `BROWSER_CHANNEL` 设置为 `chromium` 后运行检查。下载浏览器只为验证使用，不是启动游戏的前提。
+如果没有 Chrome/Edge，可执行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\project.ps1 -Task install:browser`，并将 `BROWSER_CHANNEL` 设置为 `chromium` 后运行检查。浏览器下载到项目 `.cache/browsers`，仅为验证使用，不是启动游戏的前提。
 
 ## 第二阶段手动验收
 
@@ -65,7 +78,7 @@ npm.cmd run test:smoke
 物理逻辑检查（不需要启动网页）：
 
 ```powershell
-npm.cmd run test:physics
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\project.ps1 -Task test:physics
 ```
 
 该检查需要 Node.js 22.18+ 或 24+（使用 Node 原生 TypeScript 类型擦除），游戏安装与构建仍支持 Node.js 22.12+。
